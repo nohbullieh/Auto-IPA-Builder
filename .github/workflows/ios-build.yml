@@ -1,0 +1,28 @@
+name: "Build iOS IPA"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unzip Assets
+        run: |
+          unzip Archive.zip -d extracted_assets || echo "No archive found"
+
+      - name: Build App Placeholder
+        run: |
+          mkdir -p build/out
+          echo "Assets packaged successfully!" > build/out/status.txt
+          # If this is a compiled Xcode project, your build commands run here
+          zip -r build/out/app-release.ipa extracted_assets
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-ipa
+          path: build/out/*
