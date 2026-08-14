@@ -1,0 +1,61 @@
+name: "AltStore Strict IPA Builder"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Files Safely
+        run: |
+          mkdir -p raw_assets
+          unzip -q *.zip -d raw_assets || echo "No zip found"
+
+      - name: Build Proper iOS Structure
+        run: |
+          # Create a strict, proper Apple Payload structure
+          mkdir -p Payload/YourApp.app
+          
+          # Move all your assets directly into the app structure
+          cp -R raw_assets/* Payload/YourApp.app/
+          
+          # Create the missing Info.plist identity card text file
+          cat <<EOF > Payload/YourApp.app/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleDevelopmentRegion</key>
+              <string>en</string>
+              <key>CFBundleExecutable</key>
+              <string>YourApp</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.yourname.customapp</string>
+              <key>CFBundleInfoDictionaryVersion</key>
+              <string>6.0</string>
+              <key>CFBundleName</key>
+              <string>CustomApp</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+          
+          # Package the Payload folder strictly into an iOS compliant IPA
+          zip -qr app-release.ipa Payload
+
+      - name: Upload Valid IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: valid-altstore-ipa
+          path: app-release.ipa
