@@ -1,0 +1,31 @@
+name: "Final IPA Builder"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Uploaded Files
+        run: |
+          mkdir -p output_folder
+          # This extracts ANY zip file you uploaded
+          unzip -q *.zip -d project_assets || echo "No zip files found"
+
+      - name: Create IPA Package
+        run: |
+          # Go inside the asset folder and package it up
+          cd project_assets
+          zip -r ../output_folder/app-release.ipa .
+          cd ..
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-ios-app-ipa
+          path: output_folder/app-release.ipa
+          
